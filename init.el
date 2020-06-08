@@ -112,7 +112,7 @@ This function should only modify configuration layer settings."
      ;;       helm-use-frame-when-more-than-two-windows nil)
 
      html
-     ;; javascript
+     javascript
      json
 
      ;; Clojure specific configuration in dotspacemacs/user-config
@@ -144,6 +144,8 @@ This function should only modify configuration layer settings."
           org-journal-time-format ""
           org-journal-carryover-items "TODO=\"TODO\"|TODO=\"DOING\"|TODO=\"BLOCKED\"|TODO=\"REVIEW\"")
 
+     ;; Python language
+     python
 
      ;; Text-based file manager with preview
      ;; SPC a r
@@ -185,6 +187,14 @@ This function should only modify configuration layer settings."
                treemacs-use-filewatch-mode t
                treemacs-use-follow-mode t)
 
+     theme-megapack
+     (theming :variables
+              theming-modifications
+              '((spacemacs-dark (aw-leading-char-face :foreground "red" :height 3.0))
+                (spacemacs-light (aw-leading-char-face :foreground "red" :height 3.0))
+                (monokai (aw-leading-char-face :foreground "red" :height 3.0))
+                (flatland (aw-leading-char-face :foreground "red" :height 3.0))))
+
      ;; Highlight changes in buffers
      ;; SPC g . transient state for navigating changes
      (version-control :variables
@@ -202,7 +212,15 @@ This function should only modify configuration layer settings."
    ;; To use a local version of a package, use the `:location' property:
    ;; '(your-package :location "~/path/to/your-package/")
    ;; Also include the dependencies as they will not be resolved automatically.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(magithub
+                                      elpy
+                                      multiple-cursors
+                                      drag-stuffthemes-megapack
+                                      tabbar-ruler
+                                      flycheck-package
+                                      buttercup
+                                      el-mock
+                                      )
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -302,7 +320,7 @@ It should only modify the values of Spacemacs settings."
    ;; If non-nil show the version string in the Spacemacs buffer. It will
    ;; appear as (spacemacs version)@(emacs version)
    ;; (default t)
-   dotspacemacs-startup-buffer-show-version t
+   dotspacemacs-startup-buffer-show-version nil
 
    ;; Specify the startup banner. Default value is `official', it displays
    ;; the official spacemacs logo. An integer value is the index of text
@@ -342,7 +360,8 @@ It should only modify the values of Spacemacs settings."
    ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
 
-   dotspacemacs-themes '(doom-solarized-light
+   dotspacemacs-themes '(material
+                         doom-solarized-light
                          doom-sourcerer
                          kaolin-valley-dark
                          doom-solarized-dark
@@ -364,9 +383,10 @@ It should only modify the values of Spacemacs settings."
 
    ;; Default font or prioritized list of fonts.
    dotspacemacs-default-font '("Ubuntu Mono"
-                               :size 24.0
+                               :size 14.0
                                :weight normal
-                               :width normal)
+                               :width normal
+                               :powerline-scale 2)
 
    ;; The leader key (default "SPC")
    dotspacemacs-leader-key "SPC"
@@ -493,7 +513,7 @@ It should only modify the values of Spacemacs settings."
    ;; If non-nil unicode symbols are displayed in the mode line.
    ;; If you use Emacs as a daemon and wants unicode characters only in GUI set
    ;; the value to quoted `display-graphic-p'. (default t)
-   dotspacemacs-mode-line-unicode-symbols t
+   dotspacemacs-mode-line-unicode-symbols nil
 
    ;; If non-nil smooth scrolling (native-scrolling) is enabled. Smooth
    ;; scrolling overrides the default behavior of Emacs which recenters point
@@ -651,6 +671,12 @@ configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; T10 configuration
+  ;;
+  (global-linum-mode) ; Show line numbers by default
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; User key bindings
@@ -1440,8 +1466,32 @@ before packages are loaded."
   ;; (define-key global-map (kbd "c-c m c") 'mc/edit-lines)
   ;;
   ;; end of old-school bindings
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Makes *scratch* empty.
 
+  (setq initial-scratch-message "")
+
+  ;; Removes *scratch* from buffer after the mode has been set.
+  (defun remove-scratch-buffer ()
+    (if (get-buffer "*scratch*")
+           (kill-buffer "*scratch*")))
+    (add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
+
+   ;; Removes *messages* from the buffer.
+   (setq-default message-log-max nil)
+   (kill-buffer "*Messages*")
+
+   ;; Removes *Completions* from buffer after you've opened a file.
+   (add-hook 'minibuffer-exit-hook
+         '(lambda ()
+            (let ((buffer "*Completions*"))
+              (and (get-buffer buffer)
+                   (kill-buffer buffer)))))
+
+   ;; Don't show *Buffer list* when opening multiple files at the same time.
+   (setq inhibit-startup-buffer-menu t)
+
+   ;; Show only one active window when opening multiple files at the same time.
+   (add-hook 'window-setup-hook 'delete-other-windows)
 
   )   ;; End of dot-spacemacs/user-config
 
